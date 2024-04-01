@@ -4,11 +4,11 @@
   
     
     <entry>
-      <title>seo：网站的sitemap</title>
-      <link href="/2024/01/17/seo%EF%BC%9A%E7%BD%91%E7%AB%99%E7%9A%84sitemap/"/>
-      <url>/2024/01/17/seo%EF%BC%9A%E7%BD%91%E7%AB%99%E7%9A%84sitemap/</url>
+      <title>All You Need to Know to Make a TO-C Page</title>
+      <link href="/2024/04/01/All-You-Need-to-Know-to-Make-a-TO-C-Page/"/>
+      <url>/2024/04/01/All-You-Need-to-Know-to-Make-a-TO-C-Page/</url>
       
-        <content type="html"><![CDATA[]]></content>
+        <content type="html"><![CDATA[<h1 id="Background"><a href="#Background" class="headerlink" title="Background"></a>Background</h1><p>i’ve been focusing on implementing a TO-C page for several months since i received many product requirements from the manager.<br>it was quite hard at the very first begining, case nowadays people are more likely to use open source component library to build the website, and very few people are building website from scratch with the basis html and css. A TO-C page is however a website page that faces the customers directly, so it’s very important to make it perfect and attracting. Normally, those open source component library cannot be customized for you.<br>in this article, i gonna summary the most useful things i have learn these days about building a TO-C website page. so if you are a front-end engineer, and are facing the same problem in implementing attracting website page from scratch. with this article, you can at least find everything you should know to finish your job.</p><h1 id="1-What-is-a-TO-C-page"><a href="#1-What-is-a-TO-C-page" class="headerlink" title="1. What is a TO-C page"></a>1. What is a TO-C page</h1><p>a TO-C page is a page that faces the customers directly. a attracting website page is usually hard to be built with open source component library, for example you might have heard of the ant design library \ the element ui library and so on. in some kind </p><h1 id="2-It’s-import-to-have-standard"><a href="#2-It’s-import-to-have-standard" class="headerlink" title="2. It’s import to have standard"></a>2. It’s import to have standard</h1><p>Modern website pages are designed to fit different screen size, which means you might need to use </p><h1 id="3"><a href="#3" class="headerlink" title="3."></a>3.</h1>]]></content>
       
       
       
