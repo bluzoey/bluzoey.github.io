@@ -1,0 +1,341 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>多卡顿堆栈的实时方法聚类 | choi</title><meta name="author" content="choi"><meta name="copyright" content="choi"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="引子近期，接到团队内的一个需求，内容是做一个方法调用树的功能优化一下当前的移动端卡顿监控的堆栈聚类。什么是方法调用树？卡顿监控又是怎么一回事？什么是堆栈聚类？他们都是为了解决什么问题呢？ 作为性能监控团队的一员，怎么能不了解性能。于是决定一探究竟，先解决刚刚说的每一个问题，再想办法把方法调用树功能呈现出来。 什么会导致App卡顿？马斯克在Twitter的裁员新闻闹的沸沸扬扬，而最近的剧情发展正好扯">
+<meta property="og:type" content="article">
+<meta property="og:title" content="多卡顿堆栈的实时方法聚类">
+<meta property="og:url" content="https://bluzoey.github.io/2023/06/07/%E5%A4%9A%E5%8D%A1%E9%A1%BF%E5%A0%86%E6%A0%88%E7%9A%84%E5%AE%9E%E6%97%B6%E6%96%B9%E6%B3%95%E8%81%9A%E7%B1%BB/index.html">
+<meta property="og:site_name" content="choi">
+<meta property="og:description" content="引子近期，接到团队内的一个需求，内容是做一个方法调用树的功能优化一下当前的移动端卡顿监控的堆栈聚类。什么是方法调用树？卡顿监控又是怎么一回事？什么是堆栈聚类？他们都是为了解决什么问题呢？ 作为性能监控团队的一员，怎么能不了解性能。于是决定一探究竟，先解决刚刚说的每一个问题，再想办法把方法调用树功能呈现出来。 什么会导致App卡顿？马斯克在Twitter的裁员新闻闹的沸沸扬扬，而最近的剧情发展正好扯">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://bluzoey.github.io/img/Stitch.jpeg">
+<meta property="article:published_time" content="2023-06-06T17:27:22.000Z">
+<meta property="article:modified_time" content="2024-05-10T17:04:09.289Z">
+<meta property="article:author" content="choi">
+<meta property="article:tag" content="clickhouse">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://bluzoey.github.io/img/Stitch.jpeg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://bluzoey.github.io/2023/06/07/%E5%A4%9A%E5%8D%A1%E9%A1%BF%E5%A0%86%E6%A0%88%E7%9A%84%E5%AE%9E%E6%97%B6%E6%96%B9%E6%B3%95%E8%81%9A%E7%B1%BB/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":3,"unescape":false,"languages":{"hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found"}},
+  translate: undefined,
+  noticeOutdate: {"limitDay":180,"position":"top","messagePrev":"It has been","messageNext":"days since the last update, the content of the article may be outdated."},
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":1000},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Error',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '多卡顿堆栈的实时方法聚类',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-05-11 01:04:09'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/Stitch.jpeg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">5</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">5</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">4</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/about_me"><i class="fa-fw fas fa-heart"></i><span> About Me</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img fixed" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="choi"></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> Search</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/about_me"><i class="fa-fw fas fa-heart"></i><span> About Me</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">多卡顿堆栈的实时方法聚类</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2023-06-06T17:27:22.000Z" title="Created 2023-06-07 01:27:22">2023-06-07</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2024-05-10T17:04:09.289Z" title="Updated 2024-05-11 01:04:09">2024-05-11</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/tech-blog/">tech blog</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/tech-blog/database/">database</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="多卡顿堆栈的实时方法聚类"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div><article class="post-content" id="article-container"><h3 id="引子"><a href="#引子" class="headerlink" title="引子"></a>引子</h3><p>近期，接到团队内的一个需求，内容是做一个方法调用树的功能优化一下当前的移动端卡顿监控的堆栈聚类。什么是方法调用树？卡顿监控又是怎么一回事？什么是堆栈聚类？他们都是为了解决什么问题呢？</p>
+<p>作为性能监控团队的一员，怎么能不了解性能。于是决定一探究竟，先解决刚刚说的每一个问题，再想办法把方法调用树功能呈现出来。</p>
+<h3 id="什么会导致App卡顿？"><a href="#什么会导致App卡顿？" class="headerlink" title="什么会导致App卡顿？"></a>什么会导致App卡顿？</h3><p>马斯克在Twitter的裁员新闻闹的沸沸扬扬，而最近的剧情发展正好扯上了Android卡顿问题，这吸引了我的注意。</p>
+<p>马斯克在Twitter上公开发布了一条致歉内容：</p>
+<p>“有些国家&#x2F;地区在用Twitter的时候会比较卡顿，他要为此道歉。”</p>
+<p>并且他认为性能不佳的原因是，推特仅仅为了渲染界面上一个叫home timeline的功能，就执行了1000多个RPC。<br><img src="/img/%E5%A4%9A%E5%8D%A1%E9%A1%BF%E5%A0%86%E6%A0%88%E7%9A%84%E5%AE%9E%E6%97%B6%E6%96%B9%E6%B3%95%E8%81%9A%E7%B1%BB/twitter.png" alt="twitter.png"><br>这时，推特的工程师Eric站了出来，他说自己在推特Android工作了6年时间，并且指出马老板的说法是错误的。</p>
+<p>在Eric看来，造成推特的卡顿原因有三：</p>
+<ul>
+<li>推特的功能设计过于“臃肿”，有许多很少用到的功能</li>
+<li>累计多年的技术债，牺牲了性能</li>
+<li>花费大量的时间等待网络响应<br><img src="/img/%E5%A4%9A%E5%8D%A1%E9%A1%BF%E5%A0%86%E6%A0%88%E7%9A%84%E5%AE%9E%E6%97%B6%E6%96%B9%E6%B3%95%E8%81%9A%E7%B1%BB/eric.png" alt="eric.png"><br>那么造成推特“有些国家卡”的原因到底是什么呢？我们收到用户反馈的卡：“有些国家卡”，“感觉卡”，“偶尔会卡”，该怎么解决？</li>
+</ul>
+<p>结合上面这些例子的灵感，查了查资料，简单来说就是，<strong>当用户感受到卡，实际可能是程序加载、渲染的过程遇到了阻塞，或者说耗时高了，而这个阻塞影响了界面的可交互性、ui的流畅度。</strong></p>
+<p>这样看来，<strong>想要找卡顿的原因，就转化成了找程序加载、渲染过程中可能受阻的原因</strong>，我们好好想想程序加载时可能会遇到什么问题：</p>
+<ol>
+<li><strong>锁问题：死锁、抢锁都有可能导致主线程卡住。</strong></li>
+</ol>
+<ul>
+<li>死锁就是，两个线程都需要对方的锁才肯释放自己占着的锁，造成互相等待。</li>
+<li>抢锁就是，当线程想要执行某些操作时，发现锁被另一个线程占着，所以就需要等待锁被释放了，才能执行下去。</li>
+</ul>
+<ol>
+<li><strong>各种IO问题：网络IO、磁盘IO、内存IO、..</strong></li>
+</ol>
+<ul>
+<li>网络IO无需多说，对移动端来说，多数采用http或者websocket协议，他们都基于tcp，链路长。要是程序用同步的方式请求网络资源，总是拿到响应后才继续执行代码下文，也会造成主线程等待。</li>
+<li>磁盘IO，这和磁盘的本身硬件就有一定关系。传统的读写磁盘的时候需要寻道、旋转、传输等，都是费时操作。减少磁盘IO次数也是一个公认的数据库优化的着手点。</li>
+<li>内存IO，虽然比起网络和磁盘来说，内存听起来要快很多。但其实内存也存在和磁盘一样，存在随机io比顺序io要慢的问题。当对性能有极致追求的时候，或许就该看一看从内存下手的优化点了。</li>
+</ul>
+<ol>
+<li><strong>程序本身慢：</strong></li>
+</ol>
+<ul>
+<li>程序员写的代码需要大量计算，比如遍历时造成infinite loop、使用了低性能的算法，导致程序卡在某个函数执行了很久。</li>
+<li>大量的ui、复杂的ui，导致cpu计算了很久才往gpu传<br>这样一总结，卡顿看起来就没那么高深了，一旦我们知道卡顿的原因属于上面的哪一种，问题就很好解决了。</li>
+</ul>
+<p>那要怎么找到问题出在哪呢？如果是研发流程内的，能够靠研发和测试就发现的问题还好说。那如果是生产环境上，一些用户的手机上才有的问题，依赖某些运行环境、运行时数据才有的问题，脱离了生产环境可能会很难复现。</p>
+<h3 id="用卡顿堆栈来定位卡顿问题"><a href="#用卡顿堆栈来定位卡顿问题" class="headerlink" title="用卡顿堆栈来定位卡顿问题"></a>用卡顿堆栈来定位卡顿问题</h3><p>如果每次终端发生卡顿的时候，我们都将当下主线程堆栈捕捉，上报收集。那么不就可以知道主线程在执行哪个函数的时候卡住、卡在系统函数还是业务函数、卡的时候执行了什么操作？</p>
+<p>这里的原理非常简单，并且QAPM监控平台确实这么做了。那为什么还需要堆栈聚类？什么是聚类呢？让我们继续探索下去。</p>
+<h3 id="当我们谈论聚类分析，是为了解决什么问题？"><a href="#当我们谈论聚类分析，是为了解决什么问题？" class="headerlink" title="当我们谈论聚类分析，是为了解决什么问题？"></a>当我们谈论聚类分析，是为了解决什么问题？</h3><p><strong>聚类是将类似的对象分组为不同集合（类别）的过程。聚类与分类的不同在于，聚类要求划分的类是未知的。</strong></p>
+<p>听起来有些抽象，这里我想尝试用跨界的思维来理解一下，或许就能触类旁通呢？在其他领域，有不少聚类应用的例子。</p>
+<p>比如零售公司会使用聚类的手段，将相似的顾客归为一组，最终实现更好的销售商品的目的。</p>
+<p>举个例子，零售公司会先收集一些顾客信息：</p>
+<ol>
+<li>家庭收入</li>
+<li>家庭规模</li>
+<li>户主职业</li>
+<li>与最近的市区距离</li>
+</ol>
+<p>基于以上这些信息，再经过聚类分析算法的处理，顾客被归为以下类</p>
+<ol>
+<li>cluster 1：小家庭，低消费</li>
+<li>cluster 2 ：小家庭，高消费</li>
+<li>cluster 3 ：大家庭，低消费</li>
+<li>cluster 4 ：大家庭，高消费</li>
+</ol>
+<p>然后零售公司就可以分析出每种cluster的顾客会对什么样的广告产生兴趣，然后定向给同cluster的顾客推送个性化的广告页。</p>
+<p>体育科学中也经常使用聚类的方式，以此来提高队员的体育表现成绩。</p>
+<p>举个例子，球队的数据分析师，至少会统计球员的以下这些信息：</p>
+<ol>
+<li>场平均得分（PPG）</li>
+<li>场平均篮板（RPG）</li>
+<li>场平均助攻（APG）</li>
+<li>场平均抢断（SPG）</li>
+</ol>
+<p>然后通过某种聚类算法，将有类似强项和弱项的球员归为一组，进行某种有针对性的训练。</p>
+<p>从这些例子可以看出，聚类分析的前提首先是对信息的收集，然后是用聚类算法来给信息归类，最后我们就能针对不同类进行不同的处理，最终达到目的。</p>
+<h3 id="卡顿堆栈聚类"><a href="#卡顿堆栈聚类" class="headerlink" title="卡顿堆栈聚类"></a>卡顿堆栈聚类</h3><p>我们回过头来再仔细想想，如果仅仅只有卡顿堆栈信息，没有堆栈的聚类，能解决问题吗？首先，QAPM监控的是生产环境，既然是生产环境，那就可能有大量用户数据，也就会有大量堆栈数据上报。该怎么知道从哪个堆栈下手、从哪里分析问题？</p>
+<p>对大量未聚合数据进行分析，容易有这些难点：</p>
+<ol>
+<li>找共性难：如何从成千上万的卡顿堆栈中找出的几个根本原因</li>
+<li>分析难：哪些堆栈信息是有用的，如何分析</li>
+</ol>
+<p>堆栈聚类首先能解决的是找共性问题，有相似特征（feature）的堆栈被归结为一类卡顿问题，能够直接根据聚类后的关键耗时函数直接进行问题定位。</p>
+<p>其次，堆栈聚类能够解决的是看哪些堆栈是有用的问题，聚类后触发次数较多的卡顿问题被放在首页，而那些聚类后次数少的问题则在后边，开发人员重点关注发生次数多的卡顿问题即可。</p>
+<p>卡顿堆栈聚类，是将收集的终端卡顿时的堆栈，抽取关键应用层堆栈函数进行聚合，最终将终端的卡顿归结为不同类的卡顿问题。这些卡顿问题能够展示这些函数的触发次数和耗时情况，以帮助项目发现重点问题。不仅卡顿堆栈能用聚类分析、崩溃堆栈也能用聚类分析、网络性能也能根据url进行聚类分析，QAPM上许许多多的性能监控问题也都用了聚类分析的思想。</p>
+<h3 id="卡顿堆栈聚类规则"><a href="#卡顿堆栈聚类规则" class="headerlink" title="卡顿堆栈聚类规则"></a>卡顿堆栈聚类规则</h3><p>说了半天堆栈聚类，那到底是按什么规则聚类的？聚出来的类别一定是同类问题，一定是能够解决问题的吗？</p>
+<p>目前的QAPM卡顿堆栈聚类，聚合的粒度是3行函数，换句话说，也就是把每类卡顿问题的根本原因归结为3个高耗时函数。</p>
+<p>说到这里大家肯定会疑惑：</p>
+<ol>
+<li>这3个高耗时函数是怎么得到的？</li>
+<li>为什么是3行的聚合粒度？为什么不是2行、4行…？</li>
+<li>导致卡顿的耗时函数真的是这三个吗？</li>
+</ol>
+<p>我们先来解答第一个问题，每类卡顿问题的耗时函数都是由后台分析得到的。大致可以归为这几种分析情况：</p>
+<p>第一种是统计靠近栈顶的连续高耗时业务函数，先验的经验告诉我们，越是靠近栈顶的业务函数越有可能是导致终端卡顿的直接原因；</p>
+<p>第二种是没有靠近栈顶的连续高耗时函数，那么就看是否有连续高耗时的父方法，统计这些父方法；</p>
+<p>第三种是将一条上报的所有时间片打散平铺开来，统计各函数出现的频次和对应时间片的耗时算出当前函数的总耗时，然后选总耗时高的函数作为当前这个样本的特征，有一样特征的堆栈样本被看作是同类的卡顿问题；还有就是将相似的堆栈样本进行聚类，如何定义相似，用的是ReBucket算法，等等。</p>
+<p>接着我们来解答聚合粒度的问题。其实聚类的粒度控制在3行，更多的是一个经验之举。如果聚合粒度更细，可能会导致聚出来的问题（同上文的cluster，后面不再解释）太多了，聚的太散；反之，如果聚合粒度更粗，又可能导致问题过少，找到的耗时函数不够准确。</p>
+<p>当然，并不是要说选择3行的聚合粒度一定是对的，理想中，如果能够实现多级聚类是最灵活的，能够根据项目特点来自由的选择聚类的函数行数，当然这对于开发人员来说，使用难度也会更高。</p>
+<p>最后一个问题，QAPM平台上聚类分析所得到的耗时函数就一定是精准的吗？答案是不一定，这里的原因有很多种可能。</p>
+<p>让我们沿着上报数据传输的每一个环节来看。当堆栈样本上报的时候，由于我们对堆栈的抓取是依照一定的频率&#x2F;时间片来抓取的，有可能抓取的时候，卡顿已经结束，也就是抓到的堆栈已经偏移了。</p>
+<p>其次，数据上报后经过后台分析，后台分析的算法不够准确、又或是3行的聚合粒度不适合项目，这也可能导致最终分析得到的耗时函数不够精准的问题。</p>
+<p>这里，我的用词一直是“精准”而不是“准确”，想说明的是，当数据量很大的时候，由于堆栈偏移以及分析算法的误差是在我们的容错范围内的；并且数据量越大，聚类后的问题越接近我们的真实结果。</p>
+<h3 id="用火焰图、Call-Tree和Bottom-up来补偿卡顿堆栈聚类"><a href="#用火焰图、Call-Tree和Bottom-up来补偿卡顿堆栈聚类" class="headerlink" title="用火焰图、Call Tree和Bottom up来补偿卡顿堆栈聚类"></a>用火焰图、Call Tree和Bottom up来补偿卡顿堆栈聚类</h3><p>现在我们已经搞清楚这个需求的所有背景知识了，那么接下来就是进入正题，该怎么做方法调用树的需求呢？</p>
+<p>Chrome用performance面板来承载页面加载过程的性能数据，并用了三种类型的图表来诠释函数方法的性能。其中，火焰图用来展示所有方法调用关系和耗时、Call Tree用来展示函数自顶向下的调用关系（父函数调用子函数）、Bottom up用来展示自底向上的被调用关系（子函数被父函数调用）。我们吸收并借鉴Chrome的做法（其实这也是性能数据展示的通用做法），也用这三个图表来完成我们的需求。</p>
+<p>这三种图表可以视为聚类的补偿功能，能够进一步改善上文提到的耗时函数定位是否准确的问题，具体表现有以下这几种场景：</p>
+<ol>
+<li>通过火焰图将所有的堆栈数据整合成一棵树，从这颗树一眼看见耗时最长的函数，平台的分析结论</li>
+<li>在固定3行聚合粒度的情况下，真正的耗时函数有没有可能是需要第4行、5行、…？通过Call Tree，顺着调用链的追踪，我们能够发现真正的耗时函数可能在非常深的地方。</li>
+<li>Bottom up中发现了高频次、高耗时的函数？优化一处，作用在整个App上</li>
+</ol>
+<h3 id="关键技术方案"><a href="#关键技术方案" class="headerlink" title="关键技术方案"></a>关键技术方案</h3><p>在QAPM平台，目前现有的方法聚类方案是基于大数据离线计算实现的。当前数据存储方案是clickhouse。</p>
+<p>clickhouse一直传闻性能好，机器学习利器，或许我们可以尝试畅想一下，是否能用clickhouse做到大数据量级的实时计算？</p>
+<p>原始数据是平铺的堆栈数据，用JSON格式的字符串存储。从数据库查出的数据，需要能够区分出函数调用的父子关系，需要能够统计出函数出现的次数。然后前端再根据这样的信息，将数据重整成视图组件可解析的树形结构的数据。<strong>让我们先想清楚这里每一个步骤的目标要输出什么。</strong></p>
+<p>原始数据：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[[&quot;frame1&quot;, &quot;frame2&quot;, &quot;frame3&quot;,....],[&quot;frame1&quot;, &quot;frame2&quot;, &quot;frame3&quot;,....], ...]</span><br></pre></td></tr></table></figure>
+
+<p>数据库要查出能标识父子关系的信息：</p>
+<table>
+<thead>
+<tr>
+<th>parent</th>
+<th>frame</th>
+<th>cnt</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>frame1</td>
+<td>frame2</td>
+<td>2</td>
+</tr>
+<tr>
+<td>frame2</td>
+<td>frame3</td>
+<td>2</td>
+</tr>
+<tr>
+<td>……</td>
+<td>……</td>
+<td>……</td>
+</tr>
+</tbody></table>
+<p>前端要将数据转化成树形嵌套结构：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span> </span><br><span class="line">    frame <span class="punctuation">:</span> frame1<span class="punctuation">,</span></span><br><span class="line">    cnt <span class="punctuation">:</span> <span class="number">2</span><span class="punctuation">,</span></span><br><span class="line">    children <span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        frame <span class="punctuation">:</span> frame2<span class="punctuation">,</span></span><br><span class="line">        cnt <span class="punctuation">:</span> <span class="number">2</span></span><br><span class="line">        children <span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">            frame <span class="punctuation">:</span> frame3<span class="punctuation">,</span></span><br><span class="line">            ...</span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>其中，数据库查询这一步是最难的，这一步没有技巧，只能通过费曼算法来解决问题。我们首先将字符串格式的堆栈数据转化成堆栈数组，clickhouse的array族函数能力特别强，之后的问题就是处理数组。</p>
+<p>首先使用arrayJoin将堆栈数组从二维拍平成一维。</p>
+<p>然后将堆栈数组复制成2份，一份parent_stack代表父节点、一份stack代表当前节点。</p>
+<p>然后，细细观察，就可以发现，堆栈数据的父子函数总是挨着的。借鉴一下平时处理链表的思维，总是需要加上头节点。同理在堆栈数组中，我们利用clickhouse的arrayPushFront方法给parent_stack添加上虚拟头节点，然后通过arrayPopBack来使数组长度不变，构造出2个错层堆栈。</p>
+<p>利用arrayMap将数组中的元素一一对应起来，最后再一次用arrayjoin拍平数组，最终实现父子函数一一对应。</p>
+<p>就像下面这个过程：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="comment">// step 1 : 利用arrayjoin，将二维数组转化成一维</span></span><br><span class="line">stack <span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;frame1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;frame2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;frame3&quot;</span><span class="punctuation">,</span>...<span class="punctuation">,</span> <span class="string">&quot;frame n&quot;</span><span class="punctuation">]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// step 2 : 将堆栈数组复制成两份，</span></span><br><span class="line">stack <span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;frame1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;frame2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;frame3&quot;</span><span class="punctuation">,</span>...<span class="punctuation">,</span> <span class="string">&quot;frame n&quot;</span><span class="punctuation">]</span></span><br><span class="line">parent_stack <span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;frame1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;frame2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;frame3&quot;</span><span class="punctuation">,</span>...<span class="punctuation">,</span> <span class="string">&quot;frame n&quot;</span><span class="punctuation">]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// step 3 : 给parent_stack添加头节点制造出错层堆栈，维持数组长度不变</span></span><br><span class="line">stack <span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;frame1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;frame2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;frame3&quot;</span><span class="punctuation">,</span>...<span class="punctuation">,</span> <span class="string">&quot;frame n&quot;</span><span class="punctuation">]</span></span><br><span class="line">parent_stack <span class="punctuation">:</span>  <span class="punctuation">[</span><span class="string">&quot;HEAD&quot;</span><span class="punctuation">,</span> <span class="string">&quot;frame1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;frame2&quot;</span><span class="punctuation">,</span> <span class="string">&quot;frame3&quot;</span><span class="punctuation">,</span>...<span class="punctuation">,</span> <span class="string">&quot;frame n-1&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// step 4 : 利用用arrayMap构造元Tuple将父子节点绑定起来</span></span><br><span class="line"><span class="comment">// arrayMap((x,y)-&gt;(x,y), stack, parent_stack)</span></span><br><span class="line">stack_pair <span class="punctuation">:</span> <span class="punctuation">[</span>(<span class="string">&quot;HEAD&quot;</span><span class="punctuation">,</span><span class="string">&quot;frame1&quot;</span>)<span class="punctuation">,</span>(<span class="string">&quot;frame1&quot;</span><span class="punctuation">,</span><span class="string">&quot;frame2&quot;</span>)<span class="punctuation">,</span>...<span class="punctuation">,</span>(<span class="string">&quot;frame n-1&quot;</span><span class="punctuation">,</span> <span class="string">&quot;frame n&quot;</span>)<span class="punctuation">]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// step 5 : 利用arrayjoin拍平stack_pair即可</span></span><br></pre></td></tr></table></figure>
+
+<p>在真实需求场景中，我们不仅需要找到当前函数的父函数，同时还需要找到当前函数的子函数，从而实现Bottom up需求中自底向上的对应关系查找方式。用到的方法其实和上面类似：添加虚拟尾节点，制造出错层堆栈[“frame2”, “frame3”,…, “frame n”, “TAIL”]，再用元祖将他们绑定对应即可。</p>
+<p>我们可能还需要得到当前函数在堆栈中的栈深，统计函数出现的次数，等等。这些在clickhouse都能够用sql实现。</p>
+<!-- sql实验过程：
+https://docs.qq.com/doc/DYk1yckFxUm9aVnVz?&u=7a6bdf68e8f1493184334941ac685915 -->
+
+<h3 id="性能优化"><a href="#性能优化" class="headerlink" title="性能优化"></a>性能优化</h3><p>在生产环境的真实查询场景中，我们常常需要面对十万级以上的数据行数查询。在性能优化阶段，我们用这样的思路来解决问题：</p>
+<p>最耗性能的操作是哪些步骤？有替代方案吗？实验这些方案、度量、拍方案。</p>
+<p>其中，我们sql用到的字符串的json解析方法，比如JSON_QUERY函数、JSONExtract函数耗费性能，这在clickhouse的官方文档中已经指出；此外，两次arrayJoin操作也不太恰当，在数组拍平的过程中，会占用大量数据库内存，数据行数变成了n的平方。在大数据量级面前，不仅会有慢查询问题，甚至可能导致数据库内存超限。</p>
+<p>那么字符串的json解析和arrayJoin的步骤能够省略吗？</p>
+<p>json解析的步骤可以省略，因为堆栈数据格式是由后台生成的。如果后台一开始就生成数组形式的堆栈格式，那么这里就不需要从字符串中解析出数组了。但原本的字符串json结构也要保留，因为QAPM其他功能用到了这样的格式，总不可能为了这个需求就重构之前的所有需求吧。</p>
+<p>堆栈数据一式两份，这里会有存储成本的增加。但是考虑到，后台是数据入库前的最后一步，也需要配合当前需求，用正则匹配的方式去除函数的行号信息，偏移地址信息等，这样从clickhouse查询时，才能将同类的函数更好的group by在一起。因此存成两份堆栈数据，似乎是比较合理且不可避免的。</p>
+<p>arrayJoin的步骤不能省略，但可以精简。因为每条上报数据注定是一系列的时间片的堆栈数据，那么至少就是一个二维数组的结构，从二维数据的结构得到最里面的元素，可以将二维数组拍平两次，那就要使用两次arrayJoin。</p>
+<p>还有一个办法是将数组拍平一次，然后使用数组下标的方式来访问最内层元素。同时我们可以用更高性能的方式来使用arrayJoin：创建一个物化视图表，将arrayjoin的操作提前在物化视图中完成。</p>
+<p>说了这么多，忘记说性能优化的效果，我们利用benchmark来测试不同查询方案的耗时，在十万级以上的数据查询，经过性能优化操作后，最终比最初的单条sql查询快了一个数量级（提升了90%）。</p>
+<!-- 一些性能优化测试数据：
+        https://docs.qq.com/doc/DYmFYRVNMdEh4U1FY?&u=7a6bdf68e8f1493184334941ac685915 -->
+
+<h3 id="总结和未来规划"><a href="#总结和未来规划" class="headerlink" title="总结和未来规划"></a>总结和未来规划</h3><p>当前的能够完成任意粒度的堆栈内方法聚类。在产品化方面，前端展现形态上，目前是呈现的是Call Tree和Bottom up的形式，火焰图的可视化正在开发中。</p>
+<p>再抒发一点个人感想，本次的需求任务：无论是App卡顿原理、卡顿堆栈的解读、clickhouse语句、还是从全链路的视角去思考性能优化。这些对于我来说都是对未知领域的探索，过程中也投入了很多试错成本。</p>
+<p>在跨越本身前端身位去做跨界工作的时候，深深体会到做一件事情，需要沉下心，哪怕是从0开始，也该了解清楚事情的前因后果，来龙去脉，这样才会有更好的全局思维去思考问题。</p>
+<p>同时在面前有很多困难和未知时，尝试寻找突破点、抓住问题的重点很重要，比如这里的突破点就是写出复杂的查询sql，随后才是做性能优化、实现界面可视化等等。倘若一开始不想着循循渐进，不在一步步的尝试中攻克每一个问题，恐怕是没办法空想出高性能的全链路方案的。</p>
+<!-- 欢迎体验新功能，文章有说的不对的地方，欢迎指正。 -->
+
+<!-- ### 相关参考资料： -->
+<!-- 性能之巅：定位和优化程序CPU、内存、IO瓶颈：https://bbs.huaweicloud.com/blogs/222032 -->
+<!-- 实际测试内存在顺序IO和随机IO时的访问延时差异：
+https://zhuanlan.zhihu.com/p/87827480 -->
+<!-- 5 Examples of Cluster Analysis in Real Life：
+https://www.statology.org/cluster-analysis-real-life-examples/ -->
+<!-- 如何排查android卡顿原因？：
+https://mk.woa.com/q/255791 -->
+<!-- QAPM卡顿聚类，重新定义App卡顿：https://km.woa.com/group/571/articles/show/316875?ts=1551771520 -->
+<!-- 【万字长文】 Clickhouse查询优化：
+https://km.woa.com/group/571/articles/show/527756 -->
+<!-- ReBucket算法总结：
+https://cloud.tencent.com/developer/article/2077081 -->
+<!-- 堆栈合并规则：
+https://km.woa.com/group/15785/docs/show/144228 -->
+
+<!-- 腾讯文档初稿
+https://docs.qq.com/doc/DYlFZWE9XYm5OQkNs?_t=1705464755823&u=7c4071057a8846c89573e95dba28ec96 
+-->
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://bluzoey.github.io">choi</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://bluzoey.github.io/2023/06/07/%E5%A4%9A%E5%8D%A1%E9%A1%BF%E5%A0%86%E6%A0%88%E7%9A%84%E5%AE%9E%E6%97%B6%E6%96%B9%E6%B3%95%E8%81%9A%E7%B1%BB/">https://bluzoey.github.io/2023/06/07/%E5%A4%9A%E5%8D%A1%E9%A1%BF%E5%A0%86%E6%A0%88%E7%9A%84%E5%AE%9E%E6%97%B6%E6%96%B9%E6%B3%95%E8%81%9A%E7%B1%BB/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally. 转载请注明来自<a target="_blank" rel="noopener" href="https://lonelysparrow.cn/">lonelysparrow</a></span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/clickhouse/">clickhouse</a></div><div class="post_share"><div class="social-share" data-image="/img/Stitch.jpeg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2024/04/01/All-You-Need-to-Know-to-Make-a-TO-C-Page/" title="All You Need to Know to Make a Very Customized Page"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">Previous</div><div class="prev_info">All You Need to Know to Make a Very Customized Page</div></div></a></div><div class="next-post pull-right"><a href="/2023/05/30/ACL%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6%E5%88%97%E8%A1%A8%E5%AE%9E%E8%B7%B5/" title="ACL访问控制列表实践"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">Next</div><div class="next_info">ACL访问控制列表实践</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/Stitch.jpeg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">choi</div><div class="author-info__description">fake it until you make it</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">5</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">5</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">4</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/bluzoey"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%95%E5%AD%90"><span class="toc-number">1.</span> <span class="toc-text">引子</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E4%BC%9A%E5%AF%BC%E8%87%B4App%E5%8D%A1%E9%A1%BF%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">什么会导致App卡顿？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%A8%E5%8D%A1%E9%A1%BF%E5%A0%86%E6%A0%88%E6%9D%A5%E5%AE%9A%E4%BD%8D%E5%8D%A1%E9%A1%BF%E9%97%AE%E9%A2%98"><span class="toc-number">3.</span> <span class="toc-text">用卡顿堆栈来定位卡顿问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BD%93%E6%88%91%E4%BB%AC%E8%B0%88%E8%AE%BA%E8%81%9A%E7%B1%BB%E5%88%86%E6%9E%90%EF%BC%8C%E6%98%AF%E4%B8%BA%E4%BA%86%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98%EF%BC%9F"><span class="toc-number">4.</span> <span class="toc-text">当我们谈论聚类分析，是为了解决什么问题？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8D%A1%E9%A1%BF%E5%A0%86%E6%A0%88%E8%81%9A%E7%B1%BB"><span class="toc-number">5.</span> <span class="toc-text">卡顿堆栈聚类</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8D%A1%E9%A1%BF%E5%A0%86%E6%A0%88%E8%81%9A%E7%B1%BB%E8%A7%84%E5%88%99"><span class="toc-number">6.</span> <span class="toc-text">卡顿堆栈聚类规则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%A8%E7%81%AB%E7%84%B0%E5%9B%BE%E3%80%81Call-Tree%E5%92%8CBottom-up%E6%9D%A5%E8%A1%A5%E5%81%BF%E5%8D%A1%E9%A1%BF%E5%A0%86%E6%A0%88%E8%81%9A%E7%B1%BB"><span class="toc-number">7.</span> <span class="toc-text">用火焰图、Call Tree和Bottom up来补偿卡顿堆栈聚类</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E6%8A%80%E6%9C%AF%E6%96%B9%E6%A1%88"><span class="toc-number">8.</span> <span class="toc-text">关键技术方案</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96"><span class="toc-number">9.</span> <span class="toc-text">性能优化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93%E5%92%8C%E6%9C%AA%E6%9D%A5%E8%A7%84%E5%88%92"><span class="toc-number">10.</span> <span class="toc-text">总结和未来规划</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Post</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/04/01/All-You-Need-to-Know-to-Make-a-TO-C-Page/" title="All You Need to Know to Make a Very Customized Page">All You Need to Know to Make a Very Customized Page</a><time datetime="2024-04-01T04:38:31.000Z" title="Created 2024-04-01 12:38:31">2024-04-01</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/06/07/%E5%A4%9A%E5%8D%A1%E9%A1%BF%E5%A0%86%E6%A0%88%E7%9A%84%E5%AE%9E%E6%97%B6%E6%96%B9%E6%B3%95%E8%81%9A%E7%B1%BB/" title="多卡顿堆栈的实时方法聚类">多卡顿堆栈的实时方法聚类</a><time datetime="2023-06-06T17:27:22.000Z" title="Created 2023-06-07 01:27:22">2023-06-07</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/05/30/ACL%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6%E5%88%97%E8%A1%A8%E5%AE%9E%E8%B7%B5/" title="ACL访问控制列表实践">ACL访问控制列表实践</a><time datetime="2023-05-30T07:23:46.000Z" title="Created 2023-05-30 15:23:46">2023-05-30</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/05/30/urllib3-Drop-support-for-OpenSSL-1-1-1%E6%8E%92%E9%9A%9C%E8%AE%B0%E5%BD%95/" title="urllib3 Drop support for OpenSSL&lt;1.1.1 排障记录">urllib3 Drop support for OpenSSL&lt;1.1.1 排障记录</a><time datetime="2023-05-30T07:23:00.000Z" title="Created 2023-05-30 15:23:00">2023-05-30</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/05/22/%E6%A0%B7%E5%BC%8F%E5%86%B2%E7%AA%81%E5%A4%AA%E5%A4%9A%EF%BC%8C%E8%AE%B0%E4%B8%80%E6%AC%A1%E5%89%8D%E7%AB%AFCSS%E5%8D%87%E7%BA%A7/" title="样式冲突太多，记一次前端CSS升级">样式冲突太多，记一次前端CSS升级</a><time datetime="2023-05-22T01:50:27.000Z" title="Created 2023-05-22 09:50:27">2023-05-22</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2023 - 2024 By choi</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Read Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light And Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Setting"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table Of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back To Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">Search</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  Loading the Database</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="Search for Posts" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=4.13.0"></script></div></div></body></html>
